@@ -2,13 +2,16 @@
 /// Should be fairly compact and easy to copy.
 #[derive(Debug, Clone)]
 pub struct GameState {
-    // TODO
+    board : [[Option<u8>;4];4]
 }
 
 /// Creates the default position of tiles, starting with 1 in the top left corner.
 impl Default for GameState {
     fn default() -> Self {
-        todo!()
+        GameState{
+
+            board : [[Some(1),Some(5),Some(9),Some(13)],[Some(2),Some(6),Some(10),Some(14)],[Some(3),Some(7),Some(11),Some(15)],[Some(4),Some(8),Some(12),None]]
+        }
     }
 }
 
@@ -32,12 +35,14 @@ impl Eq for GameState {}
 impl GameState {
     /// Updates a position with a new tile.
     pub fn set(&mut self, x: u8, y: u8, tile: Option<u8>) {
-        todo!()
+        let (x,y) = (x as usize, y as usize);
+        self.board[x][y] = tile
     }
 
     /// Returns the tile at position x,y.
     pub fn get(&self, x: u8, y: u8) -> Option<u8> {
-        todo!()
+        let (x,y) = (x as usize, y as usize);
+        self.board[x][y]
     }
 
     /// Returns false if there is a duplicate tile in this game state.
@@ -115,7 +120,11 @@ mod tests {
         let mut state = GameState::default();
         state.set(0, 2, Some(3));
         assert_eq!(state.get(0, 2), Some(3));
-        // TODO: add more tests
+        state.set(0, 1, Some(4));
+        assert_eq!(state.get(0, 1), Some(4));
+        // Value of 5 set to tile (0,3) and assert_ne checks if that value is not given to field (0,2)
+        state.set(0, 3, Some(5));
+        assert_ne!(state.get(0,2), Some(5));
     }
 
     const DEFAULT_STATE_STR: &'static str = "\
@@ -127,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_display_game_state() {
-        let state = GameState::default();
+        let state: GameState = GameState::default();
         assert_eq!(DEFAULT_STATE_STR, format!("{state}"));
 
         // TODO: add more tests
