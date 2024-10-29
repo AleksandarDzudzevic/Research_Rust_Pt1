@@ -7,5 +7,5 @@
 - Finished Rustlings errors
 - Learned about
 - Learned how to better use Option and Result enum and learned about wrapping values in Some()
-- Started the undergrad exercise
+- Started the undergrad exercise and passed first 2 tests.
 - Committed and pushed on GitHub
