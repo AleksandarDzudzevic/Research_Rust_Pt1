@@ -116,31 +116,31 @@ impl GameState {
 
         match m {
             Move::LeftToRight => {
-                if col == 0 {
-                    return false;
-                }
-                self.swap(row, col, row, col - 1);
-                true
-            }
-            Move::RightToLeft => {
-                if col == 3 {
-                    return false;
-                }
-                self.swap(row, col, row, col + 1);
-                true
-            }
-            Move::TopToBottom => {
                 if row == 0 {
                     return false;
                 }
-                self.swap(row, col, row - 1, col);
+                self.swap(col, row, col - 1, row); // Corrected here
                 true
             }
-            Move::BottomToTop => {
+            Move::RightToLeft => {
                 if row == 3 {
                     return false;
                 }
-                self.swap(row, col, row + 1, col);
+                self.swap(col, row, col + 1, row); // Corrected here
+                true
+            }
+            Move::TopToBottom => {
+                if col == 0 {
+                    return false;
+                }
+                self.swap(col, row, col, row - 1); // Corrected here
+                true
+            }
+            Move::BottomToTop => {
+                if col == 3 {
+                    return false;
+                }
+                self.swap(col, row, col, row + 1); // Corrected here
                 true
             }
         }
