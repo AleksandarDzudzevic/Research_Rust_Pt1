@@ -1,16 +1,22 @@
+use std::{fmt::format, usize};
+
 /// Holds information about which tile is in which position.
 /// Should be fairly compact and easy to copy.
 #[derive(Debug, Clone)]
 pub struct GameState {
-    board : [[Option<u8>;4];4]
+    board: [[Option<u8>; 4]; 4],
 }
 
 /// Creates the default position of tiles, starting with 1 in the top left corner.
 impl Default for GameState {
     fn default() -> Self {
-        GameState{
-
-            board : [[Some(1),Some(5),Some(9),Some(13)],[Some(2),Some(6),Some(10),Some(14)],[Some(3),Some(7),Some(11),Some(15)],[Some(4),Some(8),Some(12),None]]
+        GameState {
+            board: [
+                [Some(1), Some(5), Some(9), Some(13)],
+                [Some(2), Some(6), Some(10), Some(14)],
+                [Some(3), Some(7), Some(11), Some(15)],
+                [Some(4), Some(8), Some(12), None],
+            ],
         }
     }
 }
@@ -18,14 +24,32 @@ impl Default for GameState {
 /// Generates a human-readable representation of the game state.
 impl std::fmt::Display for GameState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let mut display_state = String::new();
+        for i in 0..4 {
+            display_state.push_str("|");
+            for j in 0..4 {
+                match self.board[j][i] {
+                    Some(val) => display_state.push_str(&format!(" {:>2} |", val)),
+                    None => display_state.push_str(&format!("    |")),
+                }
+            }
+            display_state.push('\n');
+        }
+        write!(f, "{}", display_state)
     }
 }
 
 /// Checks whether two game states are the same,.
 impl PartialEq for GameState {
     fn eq(&self, other: &Self) -> bool {
-        todo!()
+        for i in 0..4 {
+            for j in 0..4 {
+                if self.board[i][j] != other.board[i][j] {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }
 
@@ -35,35 +59,102 @@ impl Eq for GameState {}
 impl GameState {
     /// Updates a position with a new tile.
     pub fn set(&mut self, x: u8, y: u8, tile: Option<u8>) {
-        let (x,y) = (x as usize, y as usize);
+        let (x, y) = (x as usize, y as usize);
         self.board[x][y] = tile
     }
 
     /// Returns the tile at position x,y.
     pub fn get(&self, x: u8, y: u8) -> Option<u8> {
-        let (x,y) = (x as usize, y as usize);
+        let (x, y) = (x as usize, y as usize);
         self.board[x][y]
     }
 
     /// Returns false if there is a duplicate tile in this game state.
     pub fn all_tiles_unique(&self) -> bool {
-        todo!()
+        use std::collections::HashSet;
+        let mut my_set: HashSet<Option<u8>> = HashSet::new();
+        for i in 0..4 {
+            for j in 0..4 {
+                if my_set.contains(&self.board[i][j]) {
+                    return false;
+                }
+                my_set.insert(self.board[i][j]);
+            }
+        }
+        return true;
     }
 
     /// Swaps the tile from (x1,y1) with the tile from (x2,y2)
     pub fn swap(&mut self, x1: u8, y1: u8, x2: u8, y2: u8) {
-        todo!()
+        let (x1, y1) = (x1 as usize, y1 as usize);
+        let (x2, y2) = (x2 as usize, y2 as usize);
+        let temp_tile = self.board[x1][y1];
+        self.board[x1][y1] = self.board[x2][y2];
+        self.board[x2][y2] = temp_tile;
     }
 
     /// Updates the state to reflect the move that was performed. Returns false if the move was
     /// not possible.
     pub fn perform_move(&mut self, m: Move) -> bool {
-        todo!()
+        // Locate the empty space
+        let (mut col, mut row) = (0, 0);
+        let mut found_empty = false;
+
+        for i in 0..4 {
+            for j in 0..4 {
+                if self.board[i][j].is_none() {
+                    col = i as u8;
+                    row = j as u8;
+                    found_empty = true;
+                    break;
+                }
+            }
+            if found_empty {
+                break;
+            }
+        }
+
+        match m {
+            Move::LeftToRight => {
+                if col == 0 {
+                    return false;
+                }
+                self.swap(row, col, row, col - 1);
+                true
+            }
+            Move::RightToLeft => {
+                if col == 3 {
+                    return false;
+                }
+                self.swap(row, col, row, col + 1);
+                true
+            }
+            Move::TopToBottom => {
+                if row == 0 {
+                    return false;
+                }
+                self.swap(row, col, row - 1, col);
+                true
+            }
+            Move::BottomToTop => {
+                if row == 3 {
+                    return false;
+                }
+                self.swap(row, col, row + 1, col);
+                true
+            }
+        }
     }
 
     /// Performs a series of moves. Returns the number of moves that were successful.
     pub fn perform_moves(&mut self, moves: &[Move]) -> usize {
-        todo!()
+        let mut count = 0;
+        for m in moves {
+            if self.perform_move(*m) {
+                count += 1;
+            }
+        }
+        count
     }
 
     /// Tries to parse a game state from the provided string.
@@ -124,7 +215,7 @@ mod tests {
         assert_eq!(state.get(0, 1), Some(4));
         // Value of 5 set to tile (0,3) and assert_ne checks if that value is not given to field (0,2)
         state.set(0, 3, Some(5));
-        assert_ne!(state.get(0,2), Some(5));
+        assert_ne!(state.get(0, 2), Some(5));
     }
 
     const DEFAULT_STATE_STR: &'static str = "\
