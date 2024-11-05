@@ -1,6 +1,7 @@
 # Research log Aleksandar Dzudzevic
 
 ### Research Day 1: Oct.28 2024
+
 - Finished Rustlings hashmaps
 - Finished Rustlings Quiz2
 - Finished Rustlings options
@@ -11,9 +12,24 @@
 - Committed and pushed on GitHub
 
 ### Research Day 2: Nov.1st 2024
-- Undergrad exercises project methods for swapping, displaying, checking if the tiles are unique, performing move or multiple moves. 
+
+- Undergrad exercises project methods for swapping, displaying, checking if the tiles are unique, performing move or multiple moves.
 - learned about !write() and !format() macros and what {:>2} means in !write macro
-- learned about dereferencing using *
+- learned about dereferencing using \*
 - Finished 2 chapters of Rustbook (Generics Ch 10, Writing automated Testing Ch 11)
 - Finished 1 section of rustlings (generics)
 - Committed and pushed on GitHub
+
+### Research Day 3: Nov.4th 2024
+
+- Finished rustlings traits section
+- Finished rustlings lifetimes section
+- Wrote test cases for test_validate_game_state, test_swap, test_perform_move, test_perform_moves methods
+- Finished Quiz 3 of Rustings
+- Finished testing section of rustlings
+- Code Review
+  - Helped method for finding the empty tile
+  - Updated all_tiles_are unique method so that it also ensures that the tile doesn’t contain a value that isn’t allowed.
+  - Fixed the col row mistake in my perform move method
+- Worked on the from_str method
+- Learned about lines() and collect() methods in Rust

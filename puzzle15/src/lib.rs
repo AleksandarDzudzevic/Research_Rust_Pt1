@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+use std::default;
 use std::{fmt::format, usize};
 
 /// Holds information about which tile is in which position.
@@ -43,6 +45,7 @@ impl std::fmt::Display for GameState {
 impl PartialEq for GameState {
     fn eq(&self, other: &Self) -> bool {
         for i in 0..4 {
+            //can just compare the arrays directly
             for j in 0..4 {
                 if self.board[i][j] != other.board[i][j] {
                     return false;
@@ -71,11 +74,15 @@ impl GameState {
 
     /// Returns false if there is a duplicate tile in this game state.
     pub fn all_tiles_unique(&self) -> bool {
-        use std::collections::HashSet;
         let mut my_set: HashSet<Option<u8>> = HashSet::new();
         for i in 0..4 {
             for j in 0..4 {
                 if my_set.contains(&self.board[i][j]) {
+                    return false;
+                }
+                if self.board[i][j].is_some()
+                    && (self.board[i][j].unwrap() > 15 || self.board[i][j].unwrap() < 1)
+                {
                     return false;
                 }
                 my_set.insert(self.board[i][j]);
@@ -92,55 +99,49 @@ impl GameState {
         self.board[x1][y1] = self.board[x2][y2];
         self.board[x2][y2] = temp_tile;
     }
-
+    fn find_empty_tile(&self) -> Option<(u8, u8)> {
+        for x in 0..4 {
+            for y in 0..4 {
+                if self.get(x, y).is_none() {
+                    return Some((x as u8, y as u8));
+                }
+            }
+        }
+        None
+    }
     /// Updates the state to reflect the move that was performed. Returns false if the move was
     /// not possible.
     pub fn perform_move(&mut self, m: Move) -> bool {
-        // Locate the empty space
-        let (mut col, mut row) = (0, 0);
-        let mut found_empty = false;
-
-        for i in 0..4 {
-            for j in 0..4 {
-                if self.board[i][j].is_none() {
-                    col = i as u8;
-                    row = j as u8;
-                    found_empty = true;
-                    break;
-                }
-            }
-            if found_empty {
-                break;
-            }
-        }
-
+        let Some((col, row)) = self.find_empty_tile() else {
+            return false;
+        };
         match m {
             Move::LeftToRight => {
-                if row == 0 {
-                    return false;
-                }
-                self.swap(col, row, col - 1, row); // Corrected here
-                true
-            }
-            Move::RightToLeft => {
-                if row == 3 {
-                    return false;
-                }
-                self.swap(col, row, col + 1, row); // Corrected here
-                true
-            }
-            Move::TopToBottom => {
                 if col == 0 {
                     return false;
                 }
-                self.swap(col, row, col, row - 1); // Corrected here
+                self.swap(col, row, col - 1, row);
                 true
             }
-            Move::BottomToTop => {
+            Move::RightToLeft => {
                 if col == 3 {
                     return false;
                 }
-                self.swap(col, row, col, row + 1); // Corrected here
+                self.swap(col, row, col + 1, row);
+                true
+            }
+            Move::TopToBottom => {
+                if row == 0 {
+                    return false;
+                }
+                self.swap(col, row, col, row - 1);
+                true
+            }
+            Move::BottomToTop => {
+                if row == 3 {
+                    return false;
+                }
+                self.swap(col, row, col, row + 1);
                 true
             }
         }
@@ -161,8 +162,24 @@ impl GameState {
     /// Returns None if parsing is not possible, or if the parsed game state would contain
     /// duplicate or invalid tiles.
     /// Ignores whitespace.
+    ///
+    /// 1) Split by | and trim whitespaces within the tiles one more time
+    /// 2) Start putting the values of the parsed_s into the game_board using set()
+    /// 3) Use validate game state and return false if the method fails
+    /// 4) Otherwise return the board
     pub fn from_str(s: &str) -> Option<Self> {
-        todo!()
+        let game_board = GameState::default();
+        let parsed_s: Vec<&str> = s.trim().split('|').map(str::trim).collect();
+        if parsed_s.len() != 4 {
+            return None;
+        }
+        // To do ...
+
+        if game_board.all_tiles_unique() {
+            Some(game_board)
+        } else {
+            None
+        }
     }
 }
 
@@ -183,8 +200,15 @@ pub enum Move {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use core::fmt;
 
+    use super::*;
+    #[test]
+    fn tet_size() {
+        assert_eq!(1, std::mem::size_of::<u8>());
+        assert_eq!(2, std::mem::size_of::<Option<u8>>());
+        assert_eq!(4 * 4 * 2, std::mem::size_of::<GameState>())
+    }
     #[test]
     fn test_default_game_state() {
         let state = GameState::default();
@@ -229,7 +253,6 @@ mod tests {
     fn test_display_game_state() {
         let state: GameState = GameState::default();
         assert_eq!(DEFAULT_STATE_STR, format!("{state}"));
-
         // TODO: add more tests
     }
 
@@ -241,8 +264,9 @@ mod tests {
         assert!(!state.all_tiles_unique());
         state.set(0, 0, Some(4));
         assert!(state.all_tiles_unique());
-
-        // TODO: add more tests
+        // Test that checks that when giving another tile value of 4, not all tiles are unique
+        state.set(1, 1, Some(4));
+        assert!(!state.all_tiles_unique());
     }
 
     #[test]
@@ -254,13 +278,13 @@ mod tests {
         assert!(state.all_tiles_unique());
         assert_eq!(state.get(2, 3), None);
         assert_eq!(state.get(3, 3), Some(15));
-
-        //
         state.swap(0, 0, 2, 2);
         assert!(state.all_tiles_unique());
         assert_eq!(state.get(0, 0), Some(11));
-
-        // TODO: add more tests
+        state.swap(3, 3, 1, 1);
+        assert!(state.all_tiles_unique());
+        assert_eq!(state.get(1, 1), Some(15));
+        assert_eq!(state.get(3, 3), Some(6));
     }
 
     #[test]
@@ -275,8 +299,12 @@ mod tests {
         assert!(state.perform_move(Move::LeftToRight));
         assert_eq!(state.get(3, 2), Some(11));
         assert_eq!(state.get(2, 2), None);
-
-        // TODO: add more tests
+        assert!(state.perform_move(Move::RightToLeft));
+        assert_eq!(state.get(3, 2), None);
+        assert_eq!(state.get(2, 2), Some(11));
+        assert!(state.perform_move(Move::TopToBottom));
+        assert_eq!(state.get(3, 2), Some(8));
+        assert_eq!(state.get(3, 1), None);
     }
 
     #[test]
@@ -289,8 +317,10 @@ mod tests {
         state_2.set(3, 3, Some(12));
         state_2.set(3, 2, None);
         assert_eq!(state, state_2);
-
-        // TODO: add more tests
+        assert!(state.perform_move(Move::LeftToRight));
+        state_2.set(2, 2, None);
+        state_2.set(3, 2, Some(11));
+        assert_eq!(state, state_2);
     }
 
     #[test]
@@ -306,6 +336,7 @@ mod tests {
             state.perform_moves(&[Move::TopToBottom, Move::TopToBottom, Move::TopToBottom]),
             3
         );
+
         let expected = "\
 |  1 |  2 |  3 |    |
 |  5 |  6 |  7 |  4 |
@@ -314,7 +345,26 @@ mod tests {
 ";
         assert_eq!(expected, format!("{state}"));
 
-        // TODO: add more tests
+        let mut state = GameState::default();
+        assert_eq!(
+            state.perform_moves(&[
+                Move::BottomToTop,
+                Move::RightToLeft,
+                Move::BottomToTop,
+                Move::RightToLeft,
+                Move::LeftToRight,
+                Move::LeftToRight,
+                Move::LeftToRight
+            ]),
+            3
+        );
+        let expected = "\
+|  1 |  2 |  3 |  4 |
+|  5 |  6 |  7 |  8 |
+|  9 | 10 | 11 | 12 |
+|    | 13 | 14 | 15 |
+";
+        assert_eq!(expected, format!("{state}"));
     }
 
     #[test]
