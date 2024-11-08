@@ -33,3 +33,15 @@
   - Fixed the col row mistake in my perform move method
 - Worked on the from_str method
 - Learned about lines() and collect() methods in Rust
+
+### Research Day 4: Nov.8 2024
+
+- Finished Rustlings section 18 iterators (iter, collect, )
+- Fixed the from_str indexing issue I had with rows and columns
+- Worked on the from_str method and learned about how to utilize the boolean return of the insert method for HashSets to either insert something that wasn’t in the HashSet originally or return that it already exists without using contains() to make code cleaner.
+- Used the iter method I learned from rustlings in from_str when traversing rows and columns to make accessing tiles part cleaner
+- The used collect method I learned from Rustlings exercises to store values extracted from the str inside of a vector.
+- Added new test cases for from_str and found an error in my solution for cases of multiple empty tiles
+- Fixed from_str method by implementing empty tile count and returning None if it exceeds 1
+- Started with shortest_path method
+- Committed and pushed on GitHub

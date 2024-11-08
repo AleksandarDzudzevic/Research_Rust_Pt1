@@ -162,24 +162,45 @@ impl GameState {
     /// Returns None if parsing is not possible, or if the parsed game state would contain
     /// duplicate or invalid tiles.
     /// Ignores whitespace.
-    ///
-    /// 1) Split by | and trim whitespaces within the tiles one more time
-    /// 2) Start putting the values of the parsed_s into the game_board using set()
-    /// 3) Use validate game state and return false if the method fails
-    /// 4) Otherwise return the board
+
     pub fn from_str(s: &str) -> Option<Self> {
-        let game_board = GameState::default();
-        let parsed_s: Vec<&str> = s.trim().split('|').map(str::trim).collect();
-        if parsed_s.len() != 4 {
+        let mut board = [[None; 4]; 4];
+        let mut seen_tiles = HashSet::new();
+        let mut empty_tile_count = 0;
+
+        let rows: Vec<&str> = s.trim().lines().collect();
+        if rows.len() != 4 {
             return None;
         }
-        // To do ...
 
-        if game_board.all_tiles_unique() {
-            Some(game_board)
-        } else {
-            None
+        for (i, row) in rows.iter().enumerate() {
+            let cols: Vec<&str> = row.split('|').collect(); //collect makes a new fieled where it stores changes made on immutable
+            if cols.len() != 6 {
+                //empty cols at start and end
+                return None;
+            }
+
+            for (j, tile) in cols[1..5].iter().enumerate() {
+                let tile = tile.trim();
+                if tile.is_empty() {
+                    board[j][i] = None;
+                    empty_tile_count += 1;
+                    if empty_tile_count > 1 {
+                        return None;
+                    }
+                } else if let Ok(val) = tile.parse::<u8>() {
+                    if val < 1 || val > 15 || !seen_tiles.insert(val) {
+                        //much better than .contains check i orginially did
+                        return None;
+                    }
+                    board[j][i] = Some(val);
+                } else {
+                    return None;
+                }
+            }
         }
+
+        Some(GameState { board })
     }
 }
 
@@ -411,14 +432,28 @@ mod tests {
 |  9 | 10 | 11 |  8 |
 | 13 | 14 | 15 | 12 |
 ";
+        let wrong6 = "\
+|    |    |    |    |
+|    |    |    |    |
+|    |    |    |    |
+|    |    |    |    |
+";
+
+        let wrong7 = "\
+|  1 |  2 | 16 |    |
+|  5 |  6 |  7 |  4 |
+|  9 | 10 | 11 |  8 |
+| 13 | 14 | 15 | 12 |
+";
+
         assert!(GameState::from_str(wrong0).is_none());
         assert!(GameState::from_str(wrong1).is_none());
         assert!(GameState::from_str(wrong2).is_none());
         assert!(GameState::from_str(wrong3).is_none());
         assert!(GameState::from_str(wrong4).is_none());
         assert!(GameState::from_str(wrong5).is_none());
-
-        // TODO: add more tests
+        assert!(GameState::from_str(wrong6).is_none()); //is allowed check if that is ok since none should be unique too...
+        assert!(GameState::from_str(wrong7).is_none());
     }
 
     #[test]
