@@ -44,4 +44,6 @@
 - Added new test cases for from_str and found an error in my solution for cases of multiple empty tiles
 - Fixed from_str method by implementing empty tile count and returning None if it exceeds 1
 - Started with shortest_path method
+- learned about filter_map functionality
+-
 - Committed and pushed on GitHub
