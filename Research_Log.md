@@ -47,3 +47,17 @@
 - learned about filter_map functionality
 -
 - Committed and pushed on GitHub
+
+### Research Day 5: Nov.11 2024
+
+- Attempted the shortest_path full brute force approach
+- Learned about the hashmap and deque implementation in Rust
+- Learned more about BFS
+- Changed my plan and implemented an idea that is still similar but uses BFS to gradually expand the states when it comes to how many moves were needed to perform it.
+- Finished find_shortest_path
+- Added four more test cases for testing_shortest path that include some edge case scenarios.
+- Tested how does the execution time change based on the max_depth size of the possible boards I allow. 1 million states ~11.5 sec, 100000 in ~ 1 sec, 10000 in ~ 0.1 sec,
+- Learned about the flat_map method and how to use it in nested structures when making items in iterator a new iterator and used this in iterators5 in rustlings
+- Started working on chapeter 15: Smart Pointers, of the Rust Book
+- started arc.rs, the first exercise in chapter 19 (smarter pointers)
+- Pushed the progresss on Github

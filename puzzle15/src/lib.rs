@@ -1,10 +1,13 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::default;
+use std::hash::{Hash, Hasher};
+use std::ptr::eq;
+use std::thread::current;
 use std::{fmt::format, usize};
 
 /// Holds information about which tile is in which position.
 /// Should be fairly compact and easy to copy.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)] // Add Hash here
 pub struct GameState {
     board: [[Option<u8>; 4]; 4],
 }
@@ -207,7 +210,54 @@ impl GameState {
 /// Finds the minimal number of moves needed to get from one state to the other.
 /// Might run forever if there is no path, so use with caution!
 pub fn find_shortest_path(from: GameState, to: GameState) -> Vec<Move> {
-    todo!()
+    if from == to {
+        return vec![];
+    }
+    const MAX_DEPTH: usize = 10000;
+    //  to store each state with the path of moves to reach it as key val pair
+    let mut possible_states: HashMap<GameState, Vec<Move>> = HashMap::new();
+    let mut queue = VecDeque::new();
+    //original state so that it doesn't get store later
+    possible_states.insert(from.clone(), vec![]);
+    queue.push_back(from);
+
+    while !possible_states.contains_key(&to) {
+        if possible_states.len() > MAX_DEPTH {
+            return vec![]; // Return an empty path if the depth limit is exceeded
+        }
+        if let Some(current_state) = queue.pop_front() {
+            //popping and pushing order doesn't really matter
+            let current_path = possible_states.get(&current_state).unwrap().clone();
+
+            let moves = [
+                Move::LeftToRight,
+                Move::RightToLeft,
+                Move::TopToBottom,
+                Move::BottomToTop,
+            ];
+            for &m in &moves {
+                let mut new_state = current_state.clone();
+                //if its valid move
+                if new_state.perform_move(m) {
+                    // If it isn't already seen
+                    if !possible_states.contains_key(&new_state) {
+                        let mut new_path = current_path.clone();
+                        new_path.push(m);
+                        possible_states.insert(new_state.clone(), new_path);
+                        queue.push_back(new_state.clone());
+
+                        if new_state == to {
+                            return possible_states.get(&to).unwrap().clone();
+                        }
+                    }
+                }
+            }
+        } else {
+            break;
+        }
+    }
+
+    vec![]
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
@@ -452,7 +502,7 @@ mod tests {
         assert!(GameState::from_str(wrong3).is_none());
         assert!(GameState::from_str(wrong4).is_none());
         assert!(GameState::from_str(wrong5).is_none());
-        assert!(GameState::from_str(wrong6).is_none()); //is allowed check if that is ok since none should be unique too...
+        assert!(GameState::from_str(wrong6).is_none()); //should still be wrong since none should be unique too...
         assert!(GameState::from_str(wrong7).is_none());
     }
 
@@ -466,6 +516,44 @@ mod tests {
         assert_eq!(actual_moves.len(), 3);
         assert_eq!(actual_moves, expected_moves);
 
-        // TODO: add more tests
+        //this added test checks that shortest path will recognize that there is no need to do
+        // last 4 moves as they cancel each other out.
+
+        let mut state2 = GameState::default();
+        let expected_moves2 = [
+            Move::TopToBottom,
+            Move::TopToBottom,
+            Move::LeftToRight,
+            Move::LeftToRight,
+            Move::BottomToTop,
+            Move::TopToBottom,
+            Move::BottomToTop,
+            Move::TopToBottom,
+        ];
+        assert_eq!(state2.perform_moves(&expected_moves2), 8);
+        let actual_moves = find_shortest_path(GameState::default(), state2);
+        assert_eq!(actual_moves.len(), 4);
+
+        // this test is for finding path to the default state
+        let state = GameState::default();
+        let moves = find_shortest_path(state.clone(), state.clone());
+        assert_eq!(moves.len(), 0);
+
+        let mut state_invalid = GameState::default();
+        state_invalid.set(0, 0, Some(16)); // Set an invalid tile so its impossible
+        let moves = find_shortest_path(GameState::default(), state_invalid);
+        assert!(moves.is_empty());
+
+        let mut state3 = GameState::default();
+        let expected_moves3 = [
+            Move::TopToBottom,
+            Move::LeftToRight,
+            Move::TopToBottom,
+            Move::RightToLeft,
+        ];
+        assert_eq!(state3.perform_moves(&expected_moves3), 4);
+        let actual_moves3 = find_shortest_path(GameState::default(), state3);
+        assert_eq!(actual_moves3.len(), 4);
+        assert_eq!(actual_moves3, expected_moves3);
     }
 }
