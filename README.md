@@ -1,8 +1,6 @@
-## Instructions
+## Rust Research Project 1
 
-- make a fork of this repository
-- clone your fork and start implementing the functionality required to pass each test
-- go through the tests from top to bottom, they build upon each other
-- make sure to commit and push frequently so that you can track your progress
+
+This repository is my personal journey into learning Rust through an interesting tile game-solving project, aimed at mastering Rust’s core principles like memory safety, concurrency, and performance optimization. Through this project, I explore Rust’s unique ownership model, error handling, and system-level programming features. It’s a hands-on way to understand Rust’s syntax and concepts, and I welcome any suggestions or contributions!
 
 [Research Log](https://github.com/AleksandarDzudzevic/undergrad-exercises/blob/main/Research_Log.md)
